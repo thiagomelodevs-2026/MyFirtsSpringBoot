@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.controller.BarbeiroRequest;
 import com.example.demo.entity.Barbeiro;
 import com.example.demo.repository.BarbeiroRepository;
 import org.springframework.stereotype.Service;
@@ -24,15 +25,22 @@ public class BarbeiroService {
         return barbeiroRepository.findById(id);
     }
 
-    public Barbeiro cadastrar(String nome, String foto) {
-        return barbeiroRepository.save(new Barbeiro(nome, foto));
+    public Barbeiro cadastrar(BarbeiroRequest dados) {
+        Barbeiro barbeiro = new Barbeiro(dados.nome(), dados.foto());
+        barbeiro.setSenhaHash(dados.senhaHash());
+        barbeiro.setTentativasLoginFalhas(dados.tentativasLoginFalhas());
+        barbeiro.setBloqueadoAte(dados.bloqueadoAte());
+        return barbeiroRepository.save(barbeiro);
     }
 
-    public Optional<Barbeiro> atualizar(Long id, String nome, String foto) {
+    public Optional<Barbeiro> atualizar(Long id, BarbeiroRequest dados) {
         return barbeiroRepository.findById(id)
                 .map(barbeiro -> {
-                    barbeiro.setNome(nome);
-                    barbeiro.setFoto(foto);
+                    barbeiro.setNome(dados.nome());
+                    barbeiro.setFoto(dados.foto());
+                    barbeiro.setSenhaHash(dados.senhaHash());
+                    barbeiro.setTentativasLoginFalhas(dados.tentativasLoginFalhas());
+                    barbeiro.setBloqueadoAte(dados.bloqueadoAte());
                     return barbeiroRepository.save(barbeiro);
                 });
     }

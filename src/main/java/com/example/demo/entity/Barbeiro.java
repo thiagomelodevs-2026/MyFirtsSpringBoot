@@ -1,5 +1,7 @@
 package com.example.demo.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,6 +27,14 @@ public class Barbeiro {
     private String nome;
 
     private String foto;
+
+    @Column(nullable = false)
+    private String senhaHash;
+
+    @Column(nullable = false)
+    private int tentativasLoginFalhas;
+
+    private LocalDateTime bloqueadoAte;
 
     public Barbeiro(String nome, String foto) {
         this.nome = nome;

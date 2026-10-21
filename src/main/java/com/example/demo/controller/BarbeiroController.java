@@ -26,34 +26,37 @@ public class BarbeiroController {
     }
 
     @GetMapping
-    public List<Barbeiro> listar() {
-        return barbeiroService.listar();
+    public List<BarbeiroResponse> listar() {
+        return barbeiroService.listar().stream().map(BarbeiroResponse::from).toList();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Barbeiro> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<BarbeiroResponse> buscarPorId(@PathVariable Long id) {
         return barbeiroService.buscarPorId(id)
+                .map(BarbeiroResponse::from)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Barbeiro> cadastrar(@RequestBody Barbeiro dados) {
-        if (dados == null || !nomeValido(dados.getNome())) {
+    public ResponseEntity<BarbeiroResponse> cadastrar(@RequestBody BarbeiroRequest dados) {
+        if (!dadosValidos(dados)) {
             return ResponseEntity.badRequest().build();
         }
 
-        Barbeiro criado = barbeiroService.cadastrar(dados.getNome(), dados.getFoto());
-        return ResponseEntity.created(URI.create("/api/barbeiros/" + criado.getId())).body(criado);
+        Barbeiro criado = barbeiroService.cadastrar(dados);
+        return ResponseEntity.created(URI.create("/api/barbeiros/" + criado.getId()))
+                .body(BarbeiroResponse.from(criado));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Barbeiro> atualizar(@PathVariable Long id, @RequestBody Barbeiro dados) {
-        if (dados == null || !nomeValido(dados.getNome())) {
+    public ResponseEntity<BarbeiroResponse> atualizar(@PathVariable Long id, @RequestBody BarbeiroRequest dados) {
+        if (!dadosValidos(dados)) {
             return ResponseEntity.badRequest().build();
         }
 
-        return barbeiroService.atualizar(id, dados.getNome(), dados.getFoto())
+        return barbeiroService.atualizar(id, dados)
+                .map(BarbeiroResponse::from)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -67,7 +70,12 @@ public class BarbeiroController {
         return ResponseEntity.noContent().build();
     }
 
-    private boolean nomeValido(String nome) {
-        return nome != null && !nome.isBlank();
+    private boolean dadosValidos(BarbeiroRequest dados) {
+        return dados != null
+                && dados.nome() != null
+                && !dados.nome().isBlank()
+                && dados.senhaHash() != null
+                && !dados.senhaHash().isBlank()
+                && dados.tentativasLoginFalhas() >= 0;
     }
 }
